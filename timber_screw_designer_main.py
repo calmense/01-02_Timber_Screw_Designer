@@ -103,7 +103,7 @@ else: st.image('image_stahl_holz.png')
 # Screw Parameters
 st.latex(r"\textbf{Screw Parameters}")
 
-col1, col2, col3 = st.columns(3, gap="small")
+col1, col2, col3, col4 = st.columns(3, gap="small")
 with col1:
     d = st.selectbox('Diameter [mm]', [6,8,10,12])
     L_L, L_Li = get_length(hersteller, d)  # Liste der Längen
@@ -113,7 +113,7 @@ with col2:
 # Geometry Parameters
 st.latex(r"\textbf{Geometry Parameters}")
 
-col1, col2, col3 = st.columns(3, gap="small")
+col1, col2, col3, col4 = st.columns(3, gap="small")
 if verbindungsart == "Timber-Timber":
     with col1:
         t_1 = int(st.text_input('Side Wood t1 [mm]', 50))
@@ -126,21 +126,15 @@ elif verbindungsart == "Steel-Timber":
     with col2:
         t_1 = int(st.text_input('Side Wood 1 [mm]', 50))
         t_2 = 0
-#with col3:
-    #width = int(st.text_input('Beam Width [mm]', 100))
-#with col4:
-    #height = int(st.text_input('Beam Height [mm]', 400))
+    with col3:
+        if verbindungsart == "Timber-Timber":
+            alpha_1 = int(st.text_input('Angle between screw and fiber 1', 90))
+        else:
+            alpha_1 = st.text_input('Angle between screw and fiber 1', "N/A")
+    with col4:
+        alpha_2 = int(st.text_input('Angle between screw and fiber 2', 0))
 
-col1, col2, col3 = st.columns(3, gap="small")
-with col1:
-    if verbindungsart == "Timber-Timber":
-        alpha_1 = int(st.text_input('Angle between screw axis and fiber direction 1', 90))
-    else:
-        alpha_1 = st.text_input('Angle between screw axis and fiber direction 1', "N/A")
-with col2:
-    alpha_2 = int(st.text_input('Angle between screw axis and fiber direction 2', 0))
-
-col1, col2, col3 = st.columns(3, gap="small")
+col1, col2, col3, col4 = st.columns(3, gap="small")
 with col1:
     n_par = int(st.text_input('Number of screws parallel to grain', 1))
 with col2:
