@@ -126,13 +126,13 @@ elif verbindungsart == "Steel-Timber":
     with col2:
         t_1 = int(st.text_input('Side Wood 1 [mm]', 50))
         t_2 = 0
-    with col3:
-        if verbindungsart == "Timber-Timber":
-            alpha_1 = int(st.text_input('Angle between screw and fiber 1', 90))
-        else:
-            alpha_1 = st.text_input('Angle between screw and fiber 1', "N/A")
-    with col4:
-        alpha_2 = int(st.text_input('Angle between screw and fiber 2', 0))
+with col3:
+    if verbindungsart == "Timber-Timber":
+        alpha_1 = int(st.text_input('Angle between screw and fiber 1', 90))
+    else:
+        alpha_1 = st.text_input('Angle between screw and fiber 1', "N/A")
+with col4:
+    alpha_2 = int(st.text_input('Angle between screw and fiber 2', 0))
 
 col1, col2, col3, col4 = st.columns(4, gap="small")
 with col1:
