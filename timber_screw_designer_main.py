@@ -7,7 +7,7 @@ import plotly.graph_objects as go
 from würth_screws_functions import get_length, ec5_87_tragfähigkeit_vg, get_min_distances_axial, get_min_distances_shear
 
 # HTML Einstellungen
-st.set_page_config(layout="wide")
+st.set_page_config(page_title="Timber Screw Designer", page_icon="🧊", layout="wide", theme="light")
 st.markdown("""<style>
 [data-testid="stSidebar"][aria-expanded="false"] > div:first-child {width: 500px;}
 [data-testid="stSidebar"][aria-expanded="false"] > div:first-child {width: 500px;margin-left: -500px;}
