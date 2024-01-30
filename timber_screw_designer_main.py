@@ -4,7 +4,7 @@ from math import pi, sqrt, cos, sin
 import pandas as pd
 import streamlit as st
 import plotly.graph_objects as go
-from würth_screws_functions import get_length, ec5_87_tragfähigkeit_vg, get_min_distances_axial, get_min_distances_shear
+from timber_screw_designer_functions import get_length, ec5_87_tragfähigkeit_vg, get_min_distances_axial, get_min_distances_shear
 
 # HTML Einstellungen
 # st.set_page_config(page_title="Timber Screw Designer", page_icon="🧊", layout="wide", theme="light")
