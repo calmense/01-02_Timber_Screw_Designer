@@ -108,6 +108,10 @@ with col1:
     L_L, L_Li = get_length(hersteller, d)  # Liste der Längen
 with col2:
     L = st.selectbox('Length [mm]', L_Li)
+with col3:
+    n_par = int(st.text_input('Screws parallel to grain', 1))
+with col4:
+    n_perp = int(st.text_input('Screws perpendicular to grain', 1))
 
 # Geometry Parameters
 st.latex(r"\textbf{Geometry Parameters}")
@@ -132,12 +136,6 @@ with col3:
         alpha_1 = st.text_input('Angle between screw and grain 1', "N/A")
 with col4:
     alpha_2 = int(st.text_input('Angle between screw and grain 2', 0))
-
-col1, col2, col3, col4 = st.columns(4, gap="small")
-with col1:
-    n_par = int(st.text_input('Screws parallel to grain', 1))
-with col2:
-    n_perp = int(st.text_input('Screws perpendicular to grain', 1))
 
 #__________________________________________________
 #__________Axial___________________________________
