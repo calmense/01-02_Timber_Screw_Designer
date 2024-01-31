@@ -8,7 +8,7 @@ import plotly.graph_objects as go
 from timber_screw_designer_functions import get_length, ec5_87_tragfähigkeit_vg, get_min_distances_axial, get_min_distances_shear
 
 # HTML Settings
-st.set_page_config(page_title="Timber Screw Designer", page_icon="🧊", layout="wide")
+st.set_page_config(page_title="Timber Screw Designer", layout="wide")
 st.markdown("""<style>
 [data-testid="stSidebar"][aria-expanded="false"] > div:first-child {width: 500px;}
 [data-testid="stSidebar"][aria-expanded="false"] > div:first-child {width: 500px;margin-left: -500px;}
@@ -102,17 +102,21 @@ else: st.image('image_stahl_holz.png')
 # Screw Parameters
 st.latex(r"\textbf{Screw Parameters}")
 
-col1, col2, col3 = st.columns(3, gap="small")
+col1, col2, col3, col4 = st.columns(4, gap="small")
 with col1:
     d = st.selectbox('Diameter [mm]', [6,8,10,12])
     L_L, L_Li = get_length(hersteller, d)  # Liste der Längen
 with col2:
     L = st.selectbox('Length [mm]', L_Li)
+with col3:
+    n_par = int(st.text_input('Screws parallel to grain', 1))
+with col4:
+    n_perp = int(st.text_input('Screws perpendicular to grain', 1))
 
 # Geometry Parameters
 st.latex(r"\textbf{Geometry Parameters}")
 
-col1, col2, col3 = st.columns(3, gap="small")
+col1, col2, col3, col4 = st.columns(4, gap="small")
 if verbindungsart == "Timber-Timber":
     with col1:
         t_1 = int(st.text_input('Side Wood t1 [mm]', 50))
@@ -125,25 +129,16 @@ elif verbindungsart == "Steel-Timber":
     with col2:
         t_1 = int(st.text_input('Side Wood 1 [mm]', 50))
         t_2 = 0
-#with col3:
-    #width = int(st.text_input('Beam Width [mm]', 100))
-#with col4:
-    #height = int(st.text_input('Beam Height [mm]', 400))
 
-col1, col2, col3 = st.columns(3, gap="small")
-with col1:
+with col3:
     if verbindungsart == "Timber-Timber":
-        alpha_1 = int(st.text_input('Angle between screw axis and fiber direction 1', 90))
+        alpha_1 = int(st.text_input('Angle between screw and grain 1', 90))
     else:
-        alpha_1 = st.text_input('Angle between screw axis and fiber direction 1', "N/A")
-with col2:
-    alpha_2 = int(st.text_input('Angle between screw axis and fiber direction 2', 0))
+        alpha_1 = st.text_input('Angle between screw and grain 1', "N/A")
+with col4:
+    alpha_2 = int(st.text_input('Angle between screw and grain 2', 0))
 
-col1, col2, col3 = st.columns(3, gap="small")
-with col1:
-    n_par = int(st.text_input('Number of screws parallel to grain', 1))
-with col2:
-    n_perp = int(st.text_input('Number of screws perpendicular to grain', 1))
+
 
 #__________________________________________________
 #__________Axial___________________________________
@@ -224,7 +219,18 @@ with st.expander("Shear Load Capacity"):
     F_vRd2 = F_vRk2*chi
 
     # Mindestabstände
-    a_1, a_2, a_3t, a_3c, a_4t, a_4c = get_min_distances_shear(d, rho_k, alpha_2)
+    if verbindungsart == "Timber-Timber":
+        a_11, a_21, a_3t1, a_3c1, a_4t1, a_4c1 = get_min_distances_shear(d, rho_k, alpha_1)
+        a_12, a_22, a_3t2, a_3c2, a_4t2, a_4c2 = get_min_distances_shear(d, rho_k, alpha_2)
+        a_1 = max(a_11, a_12)
+        a_2 = max(a_21, a_22)
+        a_3t = max(a_3t1, a_3t2)
+        a_3c = max(a_3c1, a_3c2)
+        a_4t = max(a_4t1, a_4t2)
+        a_4c = max(a_4c1, a_4c2)
+    else:
+        a_1, a_2, a_3t, a_3c, a_4t, a_4c = get_min_distances_shear(d, rho_k, alpha_2)
+        
     if a_1 >= 14*d:
         k_ef = 1
     elif a_1 >= 10*d:
@@ -346,46 +352,52 @@ with st.expander("Report"):
         st.latex('M_{yRk} = ' + str(M_yrk) + ' Nmm')
 
     #__________Ausziehwiderstand__________
-    # Axial Load Capacity Section
-    st.write("")  # Adding some space for readability
-    original_title = '<p style="font-family:Arial; color:rgb(0,0,0); font-size: 25px; font-weight: bold;">Axial Load Capacity</p>'
+    st.write("")
+    original_title = '<p style="font-family:Arial; color:rgb(0,0,0); font-size: 25px; font-weight: bold; ">Axial Load Capacity</p>'
     st.markdown(original_title, unsafe_allow_html=True)
-    
-    # Characteristic Withdrawal Capacity
     st.latex(r"\textbf{Characteristic Withdrawal Capacity}")
-    # Calculation for the withdrawal resistance
-    F_axrk1 = (k_axk * f_axk * d * l_ef) * (rho_k / 350) ** 0.8  # N
-    F_axRk1 = round(F_axrk1 / 1000, 2)
-    # Displaying the calculated withdrawal capacity
-    st.latex(r'''F_{axRk} = k_{axk} \cdot f_{axk} \cdot l_{ef} \cdot \left(\frac{\rho_{k}}{350}\right)^{0.8} = ''' + str(F_axRk1) + ' kN')
-    
-    # Characteristic Pull-through Capacity
-    # Calculation for the pull-through resistance
-    F_headrk = f_head * (d_h) ** 2 * (rho_k / 350) ** 0.8
-    F_headRk = round(F_headrk / 1000, 2)
-    # Displaying the pull-through capacity
+    # Ausziehwiderstandrr
+    # Berechnung
+    F_axrk1 = (k_axk*f_axk*d*l_ef) * (rho_k/350)**0.8  # N
+    F_axRk1 = round(F_axrk1/1000, 2)
+    # LATEX
+    st.latex(
+        r''' F_{axRk}  =  k_{axk} * f_{axk} * l_{ef} * \left(\frac{\rho_{k}}{350} \right)^{0.8} = ''' + str(F_axRk1) + ' kN')
+
+    # Kopfdurchzieh
+    # Berechnung
+    F_headrk = f_head*(d_h)**2 * (rho_k/350)**0.8
+    # F_headrk =  (k_axk*f_axk*d*4*d) * (rho_k/350)**0.8 #N
+    F_headRk = round(F_headrk/1000, 2)
+
+    # LATEX
     st.latex(r"\textbf{Characteristic Pull-through Capacity}")
-    st.latex(r'''F_{headRk} = f_{head} \cdot d_{h}^2 \cdot \left(\frac{\rho_k}{350}\right)^{0.8} = ''' + str(F_headRk) + ' kN')
-    
-    # Characteristic Tensile Capacity
-    # Direct assignment based on tensile strength
+    st.latex(
+        r'''F_{headRk}  = f_{head} * d_{h}^2 * \left(\frac{\rho_k}{350} \right)^{0.8} = ''' + str(F_headRk) + ' kN')
+
+    # Zugfestigkeit
+    # Berechnung
     F_tRk = f_tensk
-    # Displaying the tensile capacity
+    # LATEX
     st.latex(r"\textbf{Characteristic Tensile Capacity}")
     st.latex('F_{tRk} = f_{tensk} = ' + str(F_tRk) + ' kN')
-    
-    # Resulting Axial Capacity
+
     st.latex(r"\textbf{Resulting Axial Capacity}")
-    st.caption('DIN EN 1995-1-1 Sec. 8.7.2')
-    # Determine the minimum value for resulting axial capacity based on conditions
-    if t_Blech != 0 or t_2 > 4 * d:
+    st.caption('DIN EN 1995-1-1 Abs. 8.7.2')
+    if t_Blech != 0 or t_2 > 4*d:
+        # if t_Blech != 0:
         F_axRk = min(F_axRk1, F_tRk)
-        st.write('No consideration for pull-through capacity.')
-        st.latex(r'''F_{axRk} = \min(''' + rf'''{F_axRk1}, ''' + rf'''{F_tRk}) = ''' + str(F_axRk) + ' kN')
-    elif t_Blech == 0 or t_2 < 4 * d:
+        F_axrk = min(F_axrk1, F_tRk*1000)
+        st.write('Head pull-through capacity not to be taken into account.')
+        st.latex(r'''  F_{axRk} = min( ''' + rf'''{F_axRk1}, ''' +
+                    rf'''{F_tRk}) = ''' + str(F_axRk) + ' kN')
+
+    elif t_Blech == 0 or t_2 < 4*d:
+        # elif t_Blech == 0:
         F_axRk = min(F_axRk1, F_headRk, F_tRk)
-        st.latex(r'''F_{axRk} = \min(''' + rf'''{F_axRk1}, ''' + rf'''{F_headRk}, ''' + rf'''{F_tRk}) = ''' + str(F_axRk) + ' kN')
-    
+        F_axrk = min(F_axrk1, F_headrk, F_tRk*1000)
+        st.latex(r'''  F_{axRk} = min( ''' + rf'''{F_axRk1}, ''' +
+                    rf'''{F_headRk}, ''' + rf'''{F_tRk})  = ''' + str(F_axRk) + ' kN')
 
     #__________Schertragfähigkeit__________
     
