@@ -1,19 +1,19 @@
-# Schraubenbemessungsprogramm: Webapp mit Streamlit - Axial- und Schertragfähigkeit von Würth Vollgewindeschrauben
-# Bibliotheken
+# Screw Design Program: Webapp with Streamlit - Axial and Shear Capacity of Würth Full-Thread Screws
+
+# Libraries
 from math import pi, sqrt, cos, sin
 import pandas as pd
 import streamlit as st
 import plotly.graph_objects as go
 from timber_screw_designer_functions import get_length, ec5_87_tragfähigkeit_vg, get_min_distances_axial, get_min_distances_shear
 
-# HTML Einstellungen
+# HTML Settings
 st.set_page_config(page_title="Timber Screw Designer", page_icon="🧊", layout="wide")
-# st.set_page_config(layout="wide")
 st.markdown("""<style>
 [data-testid="stSidebar"][aria-expanded="false"] > div:first-child {width: 500px;}
 [data-testid="stSidebar"][aria-expanded="false"] > div:first-child {width: 500px;margin-left: -500px;}
 footer:after{
-    content:"Cal Mense (M.Eng)";
+    content:"Cal Mense (M.Eng.)";
     display:block;
     position:relative;
     color:grey;
@@ -29,8 +29,8 @@ st.markdown('''
 unsafe_allow_html=True
 )
 
-# Eingangsparameter
-# Listen
+# Input Parameters
+# Lists for Dropdown Selections
 L_kled = ['permanent', 'long-term', 'medium-term', 'short-term', 'instantaneous']
 L_kmod = [[0.6, 0.7, 0.8, 0.9, 1.1], [
     0.6, 0.7, 0.8, 0.9, 1.1], [0.5, 0.55, 0.65, 0.7, 0.9]]
@@ -44,21 +44,21 @@ L_di_scher = [[], [], [], []]
 L_no = [[], [], [], []]
 L_d = [6, 8, 10, 12]
 
-# Text
-# st.image('image_header_vg.png')
+# Program Title
 original_title = '<p style="font-family:Times; color:rgb(230, 30, 40); font-size: 60px;">Timber Screw Designer</p>'
 st.markdown(original_title, unsafe_allow_html=True)
 
-#st.title('Bemessung von Vollgewindeschrauben')
+# Program Description
 st.subheader('Würth ASSY plus VG')
 st.caption('DIN EN 1995-1-1 Ch. 8 & ETA-11/0190')
 st.write('This program determines the load-bearing capacities of fully threaded screws with regard to axial and shear loads. \
          The manufacturer-specific characteristic values refer to a Würth ASSY plus VG as a countersunk head version. \
          The program bears no responsibility for any errors. It is advised to verify the results according to the Würth tables.')
 
-# Eingabewerte
+# Input Values Sidebar
 with st.sidebar:
-
+    
+    # Displaying Input Fields in Sidebar
     st.write("")
     st.write("")
     st.write("")
@@ -73,7 +73,7 @@ with st.sidebar:
     k_mod = L_kmod[nkl][index]
     gamma = 1.3
     chi = k_mod/gamma
-    hersteller = 'Würth'
+    manufacturer = 'Würth'
     st.latex('k_{mod} / \gamma = ' + str("{:.2f}".format(chi)) )
 
     st.latex(r"\textbf{Material Parameters}")
@@ -288,189 +288,184 @@ with st.expander("Shear Load Capacity"):
         st.image("image_distances_shear.png")
 
 #__________________________________________________
-#__________structural analysis ____________________
+#__________structural report_______________________
 #__________________________________________________
     
+# Report Section
 st.latex(r"\textbf{Report}")
 with st.expander("Report"):
 
-    alph = alpha_2*pi/180
-    t_2 = L-t_1
+    # Convert angle to radians for calculations
+    alph = alpha_2 * pi / 180
+    
+    # Effective length calculation based on the presence of steel thickness
+    t_2 = L - t_1
     if t_Blech != 0:
-        l_ef = L-t_Blech
-    elif t_Blech == 0:
-        l_ef = min(L-t_1, t_1)
+        l_ef = L - t_Blech
+    else:  # If no steel plate is involved, calculate effective length differently
+        l_ef = min(L - t_1, t_1)
 
-    # Einganswerte
-    if hersteller == 'Würth':
-        # WÜrth
+    # Initializing manufacturer-specific properties for Würth screws
+    if manufacturer == 'Würth':
+        # Lists of diameters and corresponding mechanical properties
         L_d = [6, 8, 10, 12]
-        L_f_axk = [11.5, 11, 10, 10]
-        L_f_tensk = [11, 20, 32, 45]
-        L_d_h = [14, 22, 25.2, 29.4]
-        L_f_head = [13, 13, 10, 10]
+        L_f_axk = [11.5, 11, 10, 10]  # Axial strength values
+        L_f_tensk = [11, 20, 32, 45]  # Tensile strength values
+        L_d_h = [14, 22, 25.2, 29.4]  # Head diameters
+        L_f_head = [13, 13, 10, 10]   # Head strength values
 
-    # Index für Kennwerte
+    # Find the index for the selected diameter to access corresponding properties
     index = L_d.index(d)
-    d = L_d[index]
     d_h = L_d_h[index]
     f_head = L_f_head[index]
     f_axk = L_f_axk[index]
     f_tensk = L_f_tensk[index]
-    M_yrk = round(0.15*600*d**(2.6), 2)
-    f_hk = round((0.082*rho_k*d**(-0.3)), 2)
-    k_axk = 0.3+(0.7*alpha_2)/45 if alpha_2 <= 45 else 1
+    M_yrk = round(0.15 * 600 * d ** (2.6), 2)  # Moment resistance
+    f_hk = round((0.082 * rho_k * d ** (-0.3)), 2)  # Shear strength
+    k_axk = 0.3 + (0.7 * alpha_2) / 45 if alpha_2 <= 45 else 1  # Coefficient for axial capacity
 
-    # Auflistung der Kennwerte und Eingangswerte
-    original_title = '<p style="font-family:Arial; color:rgb(0,0,0); font-size: 25px; font-weight: bold; ">Mechanical Properties</p>'
+    # Display Mechanical Properties in the report
+    original_title = '<p style="font-family:Arial; color:rgb(0,0,0); font-size: 25px; font-weight: bold;">Mechanical Properties</p>'
     st.markdown(original_title, unsafe_allow_html=True)
     st.caption('ETA-11/0190')
+    
+    # Displaying the calculated properties in two columns
     col1, col2 = st.columns(2)
     with col1:
-        st.latex('d_{h} = ' + str(d_h) + ' mm')
-        st.latex('l_{eff} = ' + str(l_ef) + ' mm')
-        st.latex(r'''\rho_{k} = ''' + str(rho_k) + ' kg/m^3')
-        st.latex('k_{axk} = ' + str(k_axk))
+        st.latex('d_{h} = ' + str(d_h) + ' mm')  # Head diameter
+        st.latex('l_{eff} = ' + str(l_ef) + ' mm')  # Effective length
+        st.latex(r'''\rho_{k} = ''' + str(rho_k) + ' kg/m^3')  # Wood density
+        st.latex('k_{axk} = ' + str(k_axk))  # Coefficient for axial capacity
     with col2:
-        st.latex('f_{headk} = ' + str(f_head) + ' N/mm^2')
-        st.latex('f_{axk} = ' + str(f_axk) + ' N/mm^2')
-        st.latex('f_{tensk} = ' + str(f_tensk) + ' N/mm^2')
-        st.latex('M_{yRk} = ' + str(M_yrk) + ' Nmm')
+        st.latex('f_{headk} = ' + str(f_head) + ' N/mm^2')  # Head strength
+        st.latex('f_{axk} = ' + str(f_axk) + ' N/mm^2')  # Axial strength
+        st.latex('f_{tensk} = ' + str(f_tensk) + ' N/mm^2')  # Tensile strength
+        st.latex('M_{yRk} = ' + str(M_yrk) + ' Nmm')  # Moment resistance
+
 
     #__________Ausziehwiderstand__________
-    st.write("")
-    original_title = '<p style="font-family:Arial; color:rgb(0,0,0); font-size: 25px; font-weight: bold; ">Axial Load Capacity</p>'
+    # Axial Load Capacity Section
+    st.write("")  # Adding some space for readability
+    original_title = '<p style="font-family:Arial; color:rgb(0,0,0); font-size: 25px; font-weight: bold;">Axial Load Capacity</p>'
     st.markdown(original_title, unsafe_allow_html=True)
+    
+    # Characteristic Withdrawal Capacity
     st.latex(r"\textbf{Characteristic Withdrawal Capacity}")
-    # Ausziehwiderstandrr
-    # Berechnung
-    F_axrk1 = (k_axk*f_axk*d*l_ef) * (rho_k/350)**0.8  # N
-    F_axRk1 = round(F_axrk1/1000, 2)
-    # LATEX
-    st.latex(
-        r''' F_{axRk}  =  k_{axk} * f_{axk} * l_{ef} * \left(\frac{\rho_{k}}{350} \right)^{0.8} = ''' + str(F_axRk1) + ' kN')
-
-    # Kopfdurchzieh
-    # Berechnung
-    F_headrk = f_head*(d_h)**2 * (rho_k/350)**0.8
-    # F_headrk =  (k_axk*f_axk*d*4*d) * (rho_k/350)**0.8 #N
-    F_headRk = round(F_headrk/1000, 2)
-
-    # LATEX
+    # Calculation for the withdrawal resistance
+    F_axrk1 = (k_axk * f_axk * d * l_ef) * (rho_k / 350) ** 0.8  # N
+    F_axRk1 = round(F_axrk1 / 1000, 2)
+    # Displaying the calculated withdrawal capacity
+    st.latex(r'''F_{axRk} = k_{axk} \cdot f_{axk} \cdot l_{ef} \cdot \left(\frac{\rho_{k}}{350}\right)^{0.8} = ''' + str(F_axRk1) + ' kN')
+    
+    # Characteristic Pull-through Capacity
+    # Calculation for the pull-through resistance
+    F_headrk = f_head * (d_h) ** 2 * (rho_k / 350) ** 0.8
+    F_headRk = round(F_headrk / 1000, 2)
+    # Displaying the pull-through capacity
     st.latex(r"\textbf{Characteristic Pull-through Capacity}")
-    st.latex(
-        r'''F_{headRk}  = f_{head} * d_{h}^2 * \left(\frac{\rho_k}{350} \right)^{0.8} = ''' + str(F_headRk) + ' kN')
-
-    # Zugfestigkeit
-    # Berechnung
+    st.latex(r'''F_{headRk} = f_{head} \cdot d_{h}^2 \cdot \left(\frac{\rho_k}{350}\right)^{0.8} = ''' + str(F_headRk) + ' kN')
+    
+    # Characteristic Tensile Capacity
+    # Direct assignment based on tensile strength
     F_tRk = f_tensk
-    # LATEX
+    # Displaying the tensile capacity
     st.latex(r"\textbf{Characteristic Tensile Capacity}")
     st.latex('F_{tRk} = f_{tensk} = ' + str(F_tRk) + ' kN')
-
+    
+    # Resulting Axial Capacity
     st.latex(r"\textbf{Resulting Axial Capacity}")
-    st.caption('DIN EN 1995-1-1 Abs. 8.7.2')
-    if t_Blech != 0 or t_2 > 4*d:
-        # if t_Blech != 0:
+    st.caption('DIN EN 1995-1-1 Sec. 8.7.2')
+    # Determine the minimum value for resulting axial capacity based on conditions
+    if t_Blech != 0 or t_2 > 4 * d:
         F_axRk = min(F_axRk1, F_tRk)
-        F_axrk = min(F_axrk1, F_tRk*1000)
-        st.write('Kopfdurchziehtragfähigkeit nicht zu berücksichtigen.')
-        st.latex(r'''  F_{axRk} = min( ''' + rf'''{F_axRk1}, ''' +
-                    rf'''{F_tRk}) = ''' + str(F_axRk) + ' kN')
-
-    elif t_Blech == 0 or t_2 < 4*d:
-        # elif t_Blech == 0:
+        st.write('No consideration for pull-through capacity.')
+        st.latex(r'''F_{axRk} = \min(''' + rf'''{F_axRk1}, ''' + rf'''{F_tRk}) = ''' + str(F_axRk) + ' kN')
+    elif t_Blech == 0 or t_2 < 4 * d:
         F_axRk = min(F_axRk1, F_headRk, F_tRk)
-        F_axrk = min(F_axrk1, F_headrk, F_tRk*1000)
-        st.latex(r'''  F_{axRk} = min( ''' + rf'''{F_axRk1}, ''' +
-                    rf'''{F_headRk}, ''' + rf'''{F_tRk})  = ''' + str(F_axRk) + ' kN')
-
+        st.latex(r'''F_{axRk} = \min(''' + rf'''{F_axRk1}, ''' + rf'''{F_headRk}, ''' + rf'''{F_tRk}) = ''' + str(F_axRk) + ' kN')
+    
     #__________Schertragfähigkeit__________
     
-    # Holz-Holz
-    st.write("")
-    original_title = '<p style="font-family:Arial; color:rgb(0,0,0); font-size: 25px; font-weight: bold; ">Lateral Load Capacity</p>'
+    # Lateral Load Capacity for Timber-Timber Connections
+    st.write("")  # Adding some space for aesthetic purposes
+    original_title = '<p style="font-family:Arial; color:rgb(0,0,0); font-size: 25px; font-weight: bold;">Lateral Load Capacity</p>'
     st.markdown(original_title, unsafe_allow_html=True)
+    
+    # Check if there is no steel plate involved
     if t_Blech == 0:
-
-        F_vk1 = round(f_hk*t_1*d, 2)
-        F_vk2 = round(f_hk*t_2*d, 2)
-        F_vk3 = round((f_hk*t_1*d)/2 * (sqrt(1+2*(1+t_2/t_1 +
-                        (t_2/t_1)**2)+(t_2/t_1)**2)-(1+t_2/t_1))+F_axrk/4, 2)
-        F_vk4 = 1.05*(f_hk*t_1*d)/(3) * \
-            (sqrt(4+(12*M_yrk)/(f_hk*t_1**2*d))-1)+F_axrk/4
-        F_vk5 = 1.05*(f_hk*t_2*d)/(3) * \
-            (sqrt(4+(12*M_yrk)/(f_hk*t_2**2*d))-1)+F_axrk/4
-        F_vk6 = 1.15*sqrt(2*M_yrk*f_hk*d)+F_axrk/4
+    
+        # Calculate lateral capacities based on different formulas
+        F_vk1 = round(f_hk * t_1 * d, 2)
+        F_vk2 = round(f_hk * t_2 * d, 2)
+        F_vk3 = round((f_hk * t_1 * d) / 2 * (sqrt(1 + 2 * (1 + t_2 / t_1 + (t_2 / t_1) ** 2) + (t_2 / t_1) ** 2) - (1 + t_2 / t_1)) + F_axrk / 4, 2)
+        F_vk4 = 1.05 * (f_hk * t_1 * d) / (3) * (sqrt(4 + (12 * M_yrk) / (f_hk * t_1 ** 2 * d)) - 1) + F_axrk / 4
+        F_vk5 = 1.05 * (f_hk * t_2 * d) / (3) * (sqrt(4 + (12 * M_yrk) / (f_hk * t_2 ** 2 * d)) - 1) + F_axrk / 4
+        F_vk6 = 1.15 * sqrt(2 * M_yrk * f_hk * d) + F_axrk / 4
         F_vrk = min(F_vk1, F_vk2, F_vk3, F_vk4, F_vk5, F_vk6)
-
-        F_vRk1 = round(F_vk1/1000, 2)
-        F_vRk2 = round(F_vk2/1000, 2)
-        F_vRk3 = round(F_vk3/1000, 2)
-        F_vRk4 = round(F_vk4/1000, 2)
-        F_vRk5 = round(F_vk5/1000, 2)
-        F_vRk6 = round(F_vk6/1000, 2)
-        F_vRk = round(F_vrk/1000, 2)
-
+    
+        # Convert to kN and round
+        F_vRk1 = round(F_vk1 / 1000, 2)
+        F_vRk2 = round(F_vk2 / 1000, 2)
+        F_vRk3 = round(F_vk3 / 1000, 2)
+        F_vRk4 = round(F_vk4 / 1000, 2)
+        F_vRk5 = round(F_vk5 / 1000, 2)
+        F_vRk6 = round(F_vk6 / 1000, 2)
+        F_vRk = round(F_vrk / 1000, 2)
+    
+        # Display calculated lateral load capacities
         st.latex(r"\textbf{Single Shear}")
-        st.caption('DIN EN 1995-1-1 Abs. 8.2.2 (8.6)')
-        st.latex(r''' F_{vk1} = f_{hk}*t_{1}*d =  ''' +
-                    str(F_vRk1) + ' kN')
-        st.latex(r''' F_{vk2} = f_{hk}*t_{2}*d =  ''' +
-                    str(F_vRk2) + ' kN')
-        st.latex(r''' F_{vk3} = \frac{f_{hk}*t_{1}*d}{1+\beta}*\left(\sqrt{1+2\beta^2*(1+\frac{t_2}{t_1}+\left(\frac{t_2}{t_1}\right)^2)+\beta^3\left(\frac{t_2}{t_1}\right)^2} - \beta\left(1+\frac{t_2}{t_1}\right)\right) + \frac{F_{axRk}}{4} = ''' + str(F_vRk3) + ' kN')
-        st.latex(r''' F_{vk4} = 1.05 * \frac{f_{hk}*t_{1}*d}{2+\beta}*\left(\sqrt{2\beta*(1+\beta)+\frac{4*\beta*(2+\beta)*M_{yRk}}{f_{hk}*d*t_{1}^2}}-\beta\right) + \frac{F_{axRk}}{4} = ''' + str(F_vRk4) + ' kN')
-        st.latex(r''' F_{vk5} = 1.05 * \frac{f_{hk}*t_{2}*d}{1+2\beta}*\left(\sqrt{2\beta^2*(1+\beta)+\frac{4*\beta*(1+2\beta)*M_{yRk}}{f_{hk}*d*t_{2}^2}}-\beta\right) + \frac{F_{axRk}}{4} = ''' + str(F_vRk5) + ' kN')
-        st.latex(
-            r''' F_{vk6} = 1.15 * \sqrt{\frac{2\beta}{1+\beta}}*\sqrt{2*M_{yRk}*f_{hk}*d} + \frac{F_{axRk}}{4} = ''' + str(F_vRk6) + ' kN')
+        st.caption('DIN EN 1995-1-1 Sec. 8.2.2 (8.6)')
+        st.latex(r'''F_{vk1} = f_{hk} \cdot t_{1} \cdot d = ''' + str(F_vRk1) + ' kN')
+        st.latex(r'''F_{vk2} = f_{hk} \cdot t_{2} \cdot d = ''' + str(F_vRk2) + ' kN')
+        st.latex(r'''F_{vk3} = \frac{f_{hk} \cdot t_{1} \cdot d}{2} \cdot \left(\sqrt{1 + 2 \left(1 + \frac{t_2}{t_1} + \left(\frac{t_2}{t_1}\right)^2\right) + \left(\frac{t_2}{t_1}\right)^2} - \left(1 + \frac{t_2}{t_1}\right)\right) + \frac{F_{axRk}}{4} = ''' + str(F_vRk3) + ' kN')
+        st.latex(r'''F_{vk4} = 1.05 \cdot \frac{f_{hk} \cdot t_{1} \cdot d}{3} \cdot \left(\sqrt{4 + \frac{12 \cdot M_{yRk}}{f_{hk} \cdot d \cdot t_{1}^2}} - 1\right) + \frac{F_{axRk}}{4} = ''' + str(F_vRk4) + ' kN')
+        st.latex(r'''F_{vk5} = 1.05 \cdot \frac{f_{hk} \cdot t_{2} \cdot d
+    
+    
+        # Holz-Stahl (einschnittig)
+        # dickes Stahlblech
+        elif t_Blech >= d:
+    
+            F_vk1 = f_hk*t_1*d
+            F_vk2 = f_hk*t_1*d*(sqrt(2+(4*M_yrk)/(f_hk*d*t_1**2))-1)+F_axrk/4
+            F_vk3 = 2.3*sqrt(M_yrk*f_hk*d)+F_axrk/4
+            F_vrk = min(F_vk1, F_vk2, F_vk3)
+    
+            F_vRk1 = round(F_vk1/1000, 2)
+            F_vRk2 = round(F_vk2/1000, 2)
+            F_vRk3 = round(F_vk3/1000, 2)
+            F_vRk = round(F_vrk/1000, 2)
+    
+            st.latex(r"\textbf{Thick Plate in Single Shear}")   
+            st.caption('DIN EN 1995-1-1 Abs. 8.2.3 (8.10)')
+            st.latex(r''' F_{vk1} = f_{hk}*t_{1}*d =  ''' +
+                        str(F_vRk1) + ' kN')
+            st.latex(
+                r''' F_{vk2} = f_{hk}*t_{2}*d * \left( \sqrt{2+ r( \frac{4*M_{yRk}}{f_{hk}*d*t_{1}^2}} ) \right) + \frac{F_{axRk}}{4} = ''' + str(F_vRk2) + ' kN')
+            st.latex(
+                r''' F_{vk3} = 2.3 * \sqrt{2*M_{yRk}*f_{hk}*d} + \frac{F_{axRk}}{4} = ''' + str(F_vRk3) + ' kN')
+            st.latex(r'''  F_{vRk} = min( ''' + rf'''{F_vRk1}, ''' +
+                        rf'''{F_vRk2}, ''' + rf'''{F_vRk3}) = ''' + str(F_vRk) + ' kN')
 
-        st.latex(r'''  F_{vRk} = min( ''' + rf'''{F_vRk1}, ''' + rf'''{F_vRk2}, ''' + rf'''{F_vRk3}, ''' +
-                    rf'''{F_vRk4}, ''' + rf'''{F_vRk5}, ''' + rf'''{F_vRk6})  = ''' + str(F_vRk) + ' kN')
-
-    # Holz-Stahl (einschnittig)
-    # dickes Stahlblech
-    elif t_Blech >= d:
-
-        F_vk1 = f_hk*t_1*d
-        F_vk2 = f_hk*t_1*d*(sqrt(2+(4*M_yrk)/(f_hk*d*t_1**2))-1)+F_axrk/4
-        F_vk3 = 2.3*sqrt(M_yrk*f_hk*d)+F_axrk/4
-        F_vrk = min(F_vk1, F_vk2, F_vk3)
-
-        F_vRk1 = round(F_vk1/1000, 2)
-        F_vRk2 = round(F_vk2/1000, 2)
-        F_vRk3 = round(F_vk3/1000, 2)
-        F_vRk = round(F_vrk/1000, 2)
-
-        st.latex(r"\textbf{Thick Plate in Single Shear}")   
-        st.caption('DIN EN 1995-1-1 Abs. 8.2.3 (8.10)')
-        st.latex(r''' F_{vk1} = f_{hk}*t_{1}*d =  ''' +
-                    str(F_vRk1) + ' kN')
-        st.latex(
-            r''' F_{vk2} = f_{hk}*t_{2}*d * \left( \sqrt{2+ r( \frac{4*M_{yRk}}{f_{hk}*d*t_{1}^2}} ) \right) + \frac{F_{axRk}}{4} = ''' + str(F_vRk2) + ' kN')
-        st.latex(
-            r''' F_{vk3} = 2.3 * \sqrt{2*M_{yRk}*f_{hk}*d} + \frac{F_{axRk}}{4} = ''' + str(F_vRk3) + ' kN')
-        st.latex(r'''  F_{vRk} = min( ''' + rf'''{F_vRk1}, ''' +
-                    rf'''{F_vRk2}, ''' + rf'''{F_vRk3}) = ''' + str(F_vRk) + ' kN')
-
-    # dünnes Stahlblech alpha
+    # Lateral Load Capacity for Connections with Thin Steel Plates
     elif t_Blech < d:
-
-        F_vk1 = 0.4*f_hk*t_1*d
-        F_vk2 = 1.15*sqrt(2*M_yrk*f_hk*d)+F_axrk/4
+        # Calculate shear capacities for different conditions
+        F_vk1 = 0.4 * f_hk * t_1 * d
+        F_vk2 = 1.15 * sqrt(2 * M_yrk * f_hk * d) + F_axrk / 4
         F_vrk = min(F_vk1, F_vk2)
-
-        F_vRk1 = round(F_vk1/1000, 2)
-        F_vRk2 = round(F_vk2/1000, 2)
-        F_vRk = round(F_vrk/1000, 2)
-
+    
+        # Convert to kN and round
+        F_vRk1 = round(F_vk1 / 1000, 2)
+        F_vRk2 = round(F_vk2 / 1000, 2)
+        F_vRk = round(F_vrk / 1000, 2)
+    
+        # Display calculated shear load capacities for thin steel plates
         st.latex(r"\textbf{Thin Plate in Single Shear}")   
-        st.caption('DIN EN 1995-1-1 Abs. 8.2.3 (8.9)')
-        st.latex(
-            r''' F_{vk1} = 0.4 * f_{hk}*t_{1}*d =  ''' + str(F_vRk1) + ' kN')
-        st.latex(
-            r''' F_{vk2} = 1.15 * \sqrt{2*M_{yRk}*f_{hk}*d} + \frac{F_{axRk}}{4} = ''' + str(F_vRk2) + ' kN')
-        st.latex(r'''  F_{vRk} = min( ''' + rf'''{F_vRk1}, ''' +
-                    rf'''{F_vRk2}) = ''' + str(F_vRk) + ' kN')
+        st.caption('DIN EN 1995-1-1 Sec. 8.2.3 (8.9)')
+        st.latex(r'''F_{vk1} = 0.4 \cdot f_{hk} \cdot t_{1} \cdot d = ''' + str(F_vRk1) + ' kN')
+        st.latex(r'''F_{vk2} = 1.15 \cdot \sqrt{2 \cdot M_{yRk} \cdot f_{hk} \cdot d} + \frac{F_{axRk}}{4} = ''' + str(F_vRk2) + ' kN')
+        st.latex(r'''F_{vRk} = \min(''' + rf'''{F_vRk1}, ''' + rf'''{F_vRk2}) = ''' + str(F_vRk) + ' kN')
+    
 
     #__________Nachweise__________
     
